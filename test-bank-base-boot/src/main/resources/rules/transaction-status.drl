@@ -1,0 +1,125 @@
+import es.test.bank.enumeration.Status;
+import es.test.bank.enumeration.Channel;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import es.test.bank.model.TransactionModel;
+import es.test.bank.model.TransactionStatusModel;
+
+global es.test.bank.model.TransactionStatusResponseModel transactionStatusResponseModel;
+
+function boolean dateIsBeforeThanToday(OffsetDateTime date){
+    if (date != null) {
+		LocalDate today = LocalDate.now();
+		LocalDate localDate = date.toLocalDate();
+		return localDate.isBefore(today);
+	}
+	return false;
+}
+
+function boolean dateIsEqualThanToday(OffsetDateTime date){
+	if (date != null) {
+		LocalDate today = LocalDate.now();
+		LocalDate localDate = date.toLocalDate();
+		return localDate.isEqual(today);
+	}
+	return false;
+}
+
+function boolean dateIsAfterThanToday(OffsetDateTime date){
+	if (date != null) {
+		LocalDate today = LocalDate.now();
+		LocalDate localDate = date.toLocalDate();
+		return localDate.isAfter(today);
+	}
+	return false;
+}
+
+rule "A transaction that is not stored in our system"
+    when
+    	$transaction : TransactionStatusModel(reference != null)
+        TransactionModel(reference == null)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.INVALID);  
+end;
+
+rule "A transaction that is stored in our system before today and status CLIENT or ATM"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.CLIENT || channel == Channel.ATM)
+        eval(dateIsBeforeThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.SETTLED);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+end;
+
+
+rule "A transaction that is stored in our system before today and status INTERNAL"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.INTERNAL)
+        eval(dateIsBeforeThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.SETTLED);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+        transactionStatusResponseModel.setFee($transaction.getFee());
+end;
+
+rule "A transaction that is stored in our system is today and status CLIENT or ATM"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.CLIENT || channel == Channel.ATM)
+        eval(dateIsEqualThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.PENDING);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+end;
+
+rule "A transaction that is stored in our system is today and status INTERNAL"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.INTERNAL)
+        eval(dateIsEqualThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.PENDING);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+        transactionStatusResponseModel.setFee($transaction.getFee());
+end;
+
+rule "A transaction that will be stored in our system > today and status CLIENT"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.CLIENT)
+         eval(dateIsAfterThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.FUTURE);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+end;
+
+rule "A transaction that will be stored in our system > today and status ATM"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.ATM)
+        eval(dateIsAfterThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.PENDING);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+end;
+
+rule "A transaction that will be stored in our system > today and status INTERNAL"
+    when
+    	$transaction : TransactionModel(reference != null && amount != null && date != null)
+        TransactionStatusModel(channel == Channel.INTERNAL)
+        eval(dateIsAfterThanToday($transaction.getDate()) == true)
+    then
+    	transactionStatusResponseModel.setReference($transaction.getReference());
+        transactionStatusResponseModel.setStatus(Status.FUTURE);
+        transactionStatusResponseModel.setAmount($transaction.getAmount());
+        transactionStatusResponseModel.setFee($transaction.getFee());
+end;

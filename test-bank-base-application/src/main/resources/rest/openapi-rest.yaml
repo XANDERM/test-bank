@@ -1,0 +1,523 @@
+openapi: 3.0.3
+info:
+  title: TestBank_Transactions
+  description: API to manage the transactions of a bank
+  version: 1.0.0
+  contact:
+    name: "Example"
+    email: "example@testbank.com"
+servers:
+  - url: '{protocol}://{host}:{port}/{basePath}'
+    variables:
+      protocol:
+        default: 'http'
+      host:
+        default: 'localhost'
+      port:
+        default: '8080'
+      basePath:
+        default: testbank
+
+paths:
+  '/transactions':
+    get:
+      tags:
+        - Transactions
+      operationId: getTransactions
+      summary: "Allows get any transactions"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+        - in: query
+          name: account_iban
+          required: false
+          schema:
+            $ref: '#/components/schemas/AccountIban'
+        - in: query 
+          name: sort
+          required: false
+          schema:
+            $ref: '#/components/schemas/Sort'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - transactions.READ
+    post:
+      tags:
+        - Transactions
+      operationId: createTransaction
+      summary: "Allows adding a new transaction"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+      requestBody:
+        $ref: '#/components/requestBodies/SaveTransactionRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/TransactionCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - transactions.CREATE
+  '/transactions/status':
+    post:
+      tags:
+        - Transactions
+      operationId: transactionStatus
+      summary: "Allows return the status and additional information for a specific transaction"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+      requestBody:
+        $ref: '#/components/requestBodies/TransactionStatusRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TransactionStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - transactions.STATUS_READ
+            
+  '/account/{iban}':
+    get:
+      tags:
+        - Accounts
+      operationId: getAccount
+      summary: "Allows get info of account"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+        - in: path
+          name: iban
+          schema:
+            type: string
+          required: true
+          description: IBAN of an account
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - account.READ
+    put:
+      tags:
+        - Accounts
+      operationId: updateAmount
+      summary: "Allows update an amount of an account"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+        - in: path
+          name: iban
+          schema:
+            type: string
+          required: true
+          description: IBAN of an account
+        - in: query
+          name: amount
+          required: true
+          schema:
+            $ref: '#/components/schemas/Amount'
+      responses:
+        '204':
+          $ref: '#/components/responses/UpdateAmount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - transactions.UPDATE
+  '/account':
+    post:
+      tags:
+        - Accounts
+      operationId: createAccount
+      summary: "Allows adding a new account"
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/X-B3-TraceId'
+        - $ref: '#/components/parameters/X-B3-SpanId'
+        - $ref: '#/components/parameters/X-B3-ParentSpanId'
+        - $ref: '#/components/parameters/X-B3-Sampled'
+      requestBody:
+        $ref: '#/components/requestBodies/SaveAccountRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/AccountCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      security:
+        - JWTProfile:
+            - transactions.CREATE
+components:
+  securitySchemes:
+    JWTProfile:
+      type: oauth2
+      description: OAuth Grant type, JWT Profile
+      flows:
+        implicit:
+          authorizationUrl: http://$(authorization-url)
+          scopes:
+            transactions.CREATE: Creates objects
+            transactions.READ: Retrieves objects
+            transactions.UPDATE: Updates object
+            transactions.DELETE: Deletes objects
+          x-tokenIntrospect:
+            url: $(sca-security-url)
+  requestBodies:
+    SaveTransactionRequest:
+      description: "The create transaction request payload"
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Transaction'
+              - required:
+                - account_iban
+                - amount
+    SaveAccountRequest:
+      description: "The create transaction request payload"
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Account'
+              - required:
+                - iban
+                - amount
+    TransactionStatusRequest:
+      description: "payload of transaction to check the status"
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/TransactionStatus'
+              - required:
+                - reference
+  responses:
+    TransactionCreated:
+      description: "OK Transaction saved"
+    AccountCreated:
+      description: "OK Account saved"
+    UpdateAmount:
+      description: "OK Amount updated"
+    OK:
+      description: "Operation completed successfully"
+    NonContent:
+      description: "Non content"
+    BadRequest:
+      description: "Bad request"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    Forbidden:
+      description: "Forbidden"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    NotFound:
+      description: "Not found"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    Unauthorized:
+      description: "Unauthorized"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    NotAcceptable:
+      description: "NotAcceptable"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    UnsupportedMediaType:
+      description: "Unsupported Media Type"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    ServiceUnavailable:
+      description: "Service unavailable"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    GatewayTimeout:
+      description: "Too Many Requests"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorList'
+    TransactionStatusResponse:
+      description: Transaction status response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransactionStatusResponse'
+  parameters:
+    Authorization:
+      in: header
+      name: Authorization
+      required: true
+      schema:
+        type: string
+      description: "Authorization security header"
+      example: Bearer 923ioh89r23ohwedh823ohdn9hite89yyugfsdf
+    X-B3-TraceId:
+      in: header
+      name: X-B3-TraceId
+      required: false
+      schema:
+        type: string
+      description: "Overall ID of the trace, shared by every span in the trace. \n\nThe value is 64 or 128 bits long"
+      example: 80f198ee56343ba864fe8b2a57d3eff7
+    X-B3-ParentSpanId:
+      in: header
+      name: X-B3-ParentSpanId
+      required: false
+      schema:
+        type: string
+      description: "Position of the parent operation in the trace tree.\n\nThe value is 64 bits long. \n\nThe value is omitted when the span is the root of the trace tree"
+      example: 05e3ac9a4f6e3b90
+    X-B3-SpanId:
+      in: header
+      name: X-B3-SpanId
+      required: false
+      schema:
+        type: string
+      description: "Position of the current operation in the trace tree.\n\nThe value is 64 bits long.\n\nDo not interpret the value: it may or may not be derived from the value of the TraceId."
+      example: e457b5a2e4d86bd1
+    X-B3-Sampled:
+      in: header
+      name: X-B3-Sampled
+      required: false
+      schema:
+        type: string
+      description: "Sampling decision.\n\nSampling is a mechanism to reduce the volume of data in the tracing system. In B3, sampling applies consistently per-trace: once the sampling decision is made, the same value must be consistently sent downstream. This means that either all or no spans share a trace ID.\n\nThe possible values are: \n- 0 = Deny\n- 1 = Accept\n- d = Debug"
+      example: 1
+  schemas:
+    Sort:
+      type: string
+      description: "order of transactions"
+      enum:
+        - ascending
+        - descending
+      x-enum-varnames:
+        - ascending
+        - descending
+      default: "ascending"
+    TransactionList:
+      description: "Array of Transactions"
+      type: array
+      items:
+        $ref: '#/components/schemas/Transaction'
+    Transaction:
+      type: object
+      description: "Data structure containing the needed information of a transaction"
+      properties:
+        reference:
+          $ref: '#/components/schemas/Reference'
+        account_iban:
+          $ref: '#/components/schemas/AccountIban'
+        date:
+          $ref: '#/components/schemas/Date'
+        amount:
+          $ref: '#/components/schemas/Amount'
+        fee:
+          $ref: '#/components/schemas/Fee'
+        description:
+          $ref: '#/components/schemas/Description'
+    Reference:
+      type: string
+      description: 'Transaction Reference'
+      example: "12345A"
+    AccountIban:
+      type: string
+      description: 'IBAN Bank Account'
+      example: "ES9820385778983000760236"
+    Date: 
+      type: string
+      format: date-time
+      description: Creation date and time
+      example: "2019-07-16T16:55:42.000Z"
+    Amount:
+      type: number
+      format: double
+      default: "500"
+    Fee:
+      type: number
+      format: double
+    Description:
+      type: string
+      description: 'Description of the transaction'
+    ErrorList:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    Account:
+      type: object
+      description: "Data structure containing the needed information of an account"
+      properties:
+        iban:
+          $ref: '#/components/schemas/AccountIban'
+        amount:
+          $ref: '#/components/schemas/Amount'
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Unique alphanumeric human readable error code
+          example: "Error code"
+        message:
+          type: string
+          description: Brief summary of issue reported
+          example: "Error description"
+        level:
+          type: string
+          description: 'Different issue level: info, warning, error'
+          example: "ErrorLevel error"
+    TransactionStatus:
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/Reference'
+        channel:
+          $ref: '#/components/schemas/Channel'
+    Channel:
+      type: string
+      enum: 
+        - CLIENT
+        - ATM
+        - INTERNAL
+      description: 'Comunication Channel Transaction'
+    TransactionStatusResponse:
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/Reference'
+        status:
+          $ref: '#/components/schemas/Status'
+        amount:
+          $ref: '#/components/schemas/Amount'
+        fee:
+          $ref: '#/components/schemas/Fee'
+    Status:
+      type: string
+      enum: 
+        - PENDING
+        - SETTLED
+        - FUTURE
+        - INVALID
+      description: 'Status of the transaction'

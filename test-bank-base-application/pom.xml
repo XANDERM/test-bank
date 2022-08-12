@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>es.test.bank</groupId>
+		<artifactId>test-bank-base</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>test-bank-base-application</artifactId>
+	<name>${project.groupId}:${project.artifactId}</name>
+
+	<properties>
+		<jackson-databind.version>0.2.1</jackson-databind.version>
+		<openapi-generator.version>6.0.1</openapi-generator.version>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi-generator.version}</version>
+				<executions>
+					<execution>
+						<id>TestBank_Transactions</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<typeMappings>
+								<typeMapping>DateTime=OffsetDateTime</typeMapping>
+							</typeMappings>
+							<importMappings>
+								<importMapping>OffsetDateTime=java.time.OffsetDateTime</importMapping>
+								<importMapping>Pageable=org.springframework.data.domain.Pageable</importMapping>
+							</importMappings>
+							<inputSpec>
+                                ${project.basedir}/src/main/resources/rest/openapi-rest.yaml
+                            </inputSpec>
+							<generatorName>spring</generatorName>
+							<apiPackage>es.test.bank.api</apiPackage>
+							<modelPackage>es.test.bank.dto</modelPackage>
+							<configOptions>
+								<java8>true</java8>
+								<dateLibrary>custom</dateLibrary>
+								<interfaceOnly>true</interfaceOnly>
+								<ignoreAnyOfInEnum>true</ignoreAnyOfInEnum>
+								<serializableModel>true</serializableModel>
+								<generateSamples>false</generateSamples>
+								<unhandledException>false</unhandledException>
+								<additionalModelTypeAnnotations>@lombok.Builder @lombok.Data @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+							</configOptions>
+							<additionalProperties>
+								<additionalProperty>modelNameSuffix=DTO</additionalProperty>
+							</additionalProperties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>test-bank-base-domain</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>test-bank-base-infrastructure</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>logback-classic</artifactId>
+					<groupId>ch.qos.logback</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>log4j-to-slf4j</artifactId>
+					<groupId>org.apache.logging.log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- openapi -->
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>openapi-generator</artifactId>
+			<version>${openapi-generator.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-simple</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-data-rest</artifactId>
+			<version>1.2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>${jackson-databind.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
+		<!-- Testing dependencies -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
